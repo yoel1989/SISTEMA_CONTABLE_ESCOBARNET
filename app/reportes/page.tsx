@@ -4,6 +4,8 @@ import { TituloModulo } from "@/components/ui/titulo-modulo";
 import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { sesionActual } from "@/lib/auth";
 import { formatoCOP } from "@/lib/formato";
+import { Alerta } from "@/components/ui/alerta";
+import { generarReporte } from "./actions";
 import {
   botonPrimario,
   botonSecundario,
@@ -11,8 +13,10 @@ import {
   encabezado,
   enlace,
   filaTabla,
+  subtitulo,
   tabla,
   tablaWrap,
+  tarjeta,
 } from "@/components/ui/estilos";
 
 // La sesión se lee en cada petición: no se prerenderiza.
@@ -38,11 +42,11 @@ type FilaReporte = {
   total_mensajes: number;
 };
 
-type Filtros = { periodo?: string; sede?: string; ventas?: string };
+type Filtros = { periodo?: string; sede?: string; ventas?: string; error?: string; generando?: string };
 
 export default async function Reportes({ searchParams }: { searchParams: Promise<Filtros> }) {
   const filtros = await searchParams;
-  const { supabase } = await sesionActual();
+  const { supabase, esAdmin } = await sesionActual();
 
   // Opciones de los filtros: periodos y sedes que existen en la tabla.
   const { data: catalogo } = await supabase
@@ -97,6 +101,38 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
         <p className="text-sm text-ink-muted">
           Periodos del 29 al 28 de cada mes. Los reportes se generan automáticamente el día 28 a las 11:59 p. m.
         </p>
+
+        {filtros.error && <Alerta tipo="error">{filtros.error}</Alerta>}
+        {filtros.generando && (() => {
+          const [desde, hasta] = filtros.generando.split("_");
+          return (
+            <Alerta tipo="exito">
+              Generación iniciada para {desde} a {hasta}. Tarda varios minutos: vuelve a cargar esta página
+              más tarde. El avance se ve en GitHub → Actions.
+            </Alerta>
+          );
+        })()}
+
+        {esAdmin && (
+          <section className={`${tarjeta} space-y-3`}>
+            <h2 className={subtitulo}>Generar reporte manual</h2>
+            <p className="text-sm text-ink-muted">
+              Genera los reportes de todas las sedes para las fechas elegidas. Si ya existe un reporte de la misma
+              sede y fecha de inicio, se reemplaza.
+            </p>
+            <form action={generarReporte} className="flex flex-wrap items-end gap-3">
+              <label className="flex flex-col gap-1 text-sm font-medium text-ink">
+                Desde
+                <input type="date" name="inicio" required className={claseCampo} />
+              </label>
+              <label className="flex flex-col gap-1 text-sm font-medium text-ink">
+                Hasta
+                <input type="date" name="fin" required className={claseCampo} />
+              </label>
+              <button type="submit" className={botonPrimario}>Generar reporte</button>
+            </form>
+          </section>
+        )}
 
         <form method="get" className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 text-sm font-medium text-ink">
