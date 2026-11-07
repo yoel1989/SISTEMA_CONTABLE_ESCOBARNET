@@ -63,3 +63,35 @@ export async function generarReporte(formData: FormData) {
 
   redirect(`/reportes?generando=${encodeURIComponent(`${inicio}_${fin}`)}`);
 }
+
+const FORMATO_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Borra reportes seleccionados: primero sus PDF del bucket y después las filas.
+// Usa la sesión del administrador, así que las políticas RLS de la migración 0017 aplican.
+export async function eliminarReportes(formData: FormData) {
+  const { supabase, esAdmin } = await sesionActual();
+  if (!esAdmin) volverConError("Solo un administrador puede eliminar reportes.");
+
+  const ids = formData.getAll("ids").map(String).filter((id) => FORMATO_UUID.test(id));
+  if (ids.length === 0) volverConError("No seleccionaste ningún reporte.");
+
+  const { data: filas, error: errorLectura } = await supabase
+    .from("reportes_sedes")
+    .select("id, archivo_path")
+    .in("id", ids);
+  if (errorLectura) volverConError("No se pudieron leer los reportes seleccionados.");
+
+  const rutas = (filas ?? []).map((f) => f.archivo_path);
+  if (rutas.length > 0) {
+    const { error: errorPdf } = await supabase.storage.from("reportes-sedes").remove(rutas);
+    if (errorPdf) volverConError("No se pudieron borrar los PDF. Los reportes no se eliminaron.");
+  }
+
+  const { error: errorBorrado } = await supabase
+    .from("reportes_sedes")
+    .delete()
+    .in("id", ids);
+  if (errorBorrado) volverConError("Los PDF se borraron, pero no las filas. Vuelve a intentarlo.");
+
+  redirect(`/reportes?borrados=${rutas.length}`);
+}

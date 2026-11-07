@@ -5,7 +5,8 @@ import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { sesionActual } from "@/lib/auth";
 import { formatoCOP } from "@/lib/formato";
 import { Alerta } from "@/components/ui/alerta";
-import { generarReporte } from "./actions";
+import { eliminarReportes, generarReporte } from "./actions";
+import { BotonEliminar, CasillaTodas } from "./controles-borrado";
 import {
   botonPrimario,
   botonSecundario,
@@ -26,7 +27,7 @@ export const instant = false;
 const SEGUNDOS_ENLACE = 60 * 60;
 
 const CAMPOS =
-  "id, sede, sede_clave, periodo_inicio, periodo_fin, archivo_path, total_ventas, total_mensajes";
+  "id, sede, sede_clave, periodo_inicio, periodo_fin, archivo_path, total_ventas, total_a_enviar, total_mensajes";
 
 const claseCampo =
   "rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-modulo-reportes/40";
@@ -39,10 +40,19 @@ type FilaReporte = {
   periodo_fin: string;
   archivo_path: string;
   total_ventas: number | string;
+  // Null en reportes generados antes de la migración 0017.
+  total_a_enviar: number | string | null;
   total_mensajes: number;
 };
 
-type Filtros = { periodo?: string; sede?: string; ventas?: string; error?: string; generando?: string };
+type Filtros = {
+  periodo?: string;
+  sede?: string;
+  ventas?: string;
+  error?: string;
+  generando?: string;
+  borrados?: string;
+};
 
 export default async function Reportes({ searchParams }: { searchParams: Promise<Filtros> }) {
   const filtros = await searchParams;
@@ -86,6 +96,8 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
   }
 
   const totalVentas = lista.reduce((suma, f) => suma + Number(f.total_ventas), 0);
+  const totalAEnviar = lista.reduce((suma, f) => suma + Number(f.total_a_enviar ?? 0), 0);
+  const columnas = esAdmin ? 7 : 6;
   const totalMensajes = lista.reduce((suma, f) => suma + Number(f.total_mensajes), 0);
   const hayFiltros = Boolean(periodoElegido || sedeElegida || soloConVentas);
 
@@ -103,6 +115,9 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
         </p>
 
         {filtros.error && <Alerta tipo="error">{filtros.error}</Alerta>}
+        {filtros.borrados && (
+          <Alerta tipo="exito">Se eliminaron {filtros.borrados} reporte(s) y sus PDF.</Alerta>
+        )}
         {filtros.generando && (() => {
           const [desde, hasta] = filtros.generando.split("_");
           return (
@@ -163,21 +178,33 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
           )}
         </form>
 
+        <form id="tabla-reportes" action={eliminarReportes} className="space-y-3">
+        {esAdmin && (
+          <div className="flex justify-end">
+            <BotonEliminar accion={eliminarReportes} />
+          </div>
+        )}
         <div className={tablaWrap}>
           <table className={tabla}>
             <thead className={cabeceraTabla}>
               <tr>
+                {esAdmin && (
+                  <th className="p-3 font-semibold">
+                    <CasillaTodas formId="tabla-reportes" />
+                  </th>
+                )}
                 <th className="p-3 font-semibold">Periodo</th>
                 <th className="p-3 font-semibold">Sede</th>
                 <th className="p-3 text-right font-semibold">Mensajes</th>
                 <th className="p-3 text-right font-semibold">Total ventas</th>
+                <th className="p-3 text-right font-semibold">A enviar</th>
                 <th className="p-3 text-right font-semibold">PDF</th>
               </tr>
             </thead>
             <tbody>
               {lista.length === 0 && (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={columnas}>
                     <EstadoVacio
                       titulo={hayFiltros ? "Ningún reporte con esos filtros." : "Aún no hay reportes."}
                       texto={hayFiltros ? "Prueba con otro periodo o quita un filtro." : "Aparecerán aquí cuando el proceso mensual termine."}
@@ -189,12 +216,20 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
                 const url = enlaces.get(f.archivo_path);
                 return (
                   <tr key={f.id} className={filaTabla}>
+                    {esAdmin && (
+                      <td className="p-3">
+                        <input type="checkbox" name="ids" value={f.id} aria-label={`Seleccionar ${f.sede} ${f.periodo_inicio}`} className="size-4" />
+                      </td>
+                    )}
                     <td className="p-3 whitespace-nowrap tabular-nums">
                       {f.periodo_inicio} a {f.periodo_fin}
                     </td>
                     <td className="p-3 font-medium">{f.sede}</td>
                     <td className="p-3 text-right tabular-nums">{f.total_mensajes}</td>
                     <td className="p-3 text-right tabular-nums">{formatoCOP(f.total_ventas)}</td>
+                    <td className="p-3 text-right tabular-nums">
+                      {f.total_a_enviar == null ? <span className="text-ink-muted">Sin dato</span> : formatoCOP(f.total_a_enviar)}
+                    </td>
                     <td className="p-3 text-right">
                       {url ? (
                         <a href={url} target="_blank" rel="noopener noreferrer" className={`${enlace} font-medium`}>
@@ -211,17 +246,19 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
             {lista.length > 0 && (
               <tfoot>
                 <tr className="font-semibold">
-                  <td className="p-3" colSpan={2}>
+                  <td className="p-3" colSpan={esAdmin ? 3 : 2}>
                     Total de {lista.length} {lista.length === 1 ? "reporte" : "reportes"}
                   </td>
                   <td className="p-3 text-right tabular-nums">{totalMensajes}</td>
                   <td className="p-3 text-right tabular-nums">{formatoCOP(totalVentas)}</td>
+                  <td className="p-3 text-right tabular-nums">{formatoCOP(totalAEnviar)}</td>
                   <td className="p-3" />
                 </tr>
               </tfoot>
             )}
           </table>
         </div>
+        </form>
       </main>
     </ShellApp>
   );
