@@ -13,6 +13,7 @@ const ENLACES: Enlace[] = [
   { href: "/tesoreria", titulo: "Tesorería", modulo: "tesoreria" },
   { href: "/dashboard", titulo: "Dashboard", modulo: "dashboard" },
   { href: "/cotizaciones", titulo: "Cotizaciones", modulo: "cotizaciones" },
+  { href: "/reportes", titulo: "Reportes", modulo: "reportes" },
 ];
 
 type ClienteSupabase = Awaited<ReturnType<typeof createClient>>;
