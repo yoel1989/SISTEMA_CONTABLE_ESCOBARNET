@@ -5,6 +5,8 @@ import { EstadoVacio } from "@/components/ui/estado-vacio";
 import { sesionActual } from "@/lib/auth";
 import { formatoCOP } from "@/lib/formato";
 import {
+  botonPrimario,
+  botonSecundario,
   cabeceraTabla,
   encabezado,
   enlace,
@@ -19,6 +21,12 @@ export const instant = false;
 // Los enlaces firmados caducan a la hora; se generan de nuevo en cada visita.
 const SEGUNDOS_ENLACE = 60 * 60;
 
+const CAMPOS =
+  "id, sede, sede_clave, periodo_inicio, periodo_fin, archivo_path, total_ventas, total_mensajes";
+
+const claseCampo =
+  "rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-modulo-reportes/40";
+
 type FilaReporte = {
   id: string;
   sede: string;
@@ -30,14 +38,36 @@ type FilaReporte = {
   total_mensajes: number;
 };
 
-export default async function Reportes() {
+type Filtros = { periodo?: string; sede?: string; ventas?: string };
+
+export default async function Reportes({ searchParams }: { searchParams: Promise<Filtros> }) {
+  const filtros = await searchParams;
   const { supabase } = await sesionActual();
 
-  const { data } = await supabase
+  // Opciones de los filtros: periodos y sedes que existen en la tabla.
+  const { data: catalogo } = await supabase
     .from("reportes_sedes")
-    .select("id, sede, sede_clave, periodo_inicio, periodo_fin, archivo_path, total_ventas, total_mensajes")
+    .select("periodo_inicio, periodo_fin, sede_clave, sede");
+  const filas = (catalogo ?? []) as Pick<FilaReporte, "periodo_inicio" | "periodo_fin" | "sede_clave" | "sede">[];
+  const periodos = [...new Map(filas.map((f) => [f.periodo_inicio, f.periodo_fin])).entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]));
+  const sedes = [...new Map(filas.map((f) => [f.sede_clave, f.sede])).entries()]
+    .sort((a, b) => a[1].localeCompare(b[1]));
+
+  // Consulta con los filtros aplicados. Solo se aceptan valores que existen en el catálogo.
+  let consulta = supabase
+    .from("reportes_sedes")
+    .select(CAMPOS)
     .order("periodo_inicio", { ascending: false })
     .order("sede", { ascending: true });
+  const periodoElegido = periodos.find(([inicio]) => inicio === filtros.periodo)?.[0];
+  const sedeElegida = sedes.find(([clave]) => clave === filtros.sede)?.[0];
+  const soloConVentas = filtros.ventas === "1";
+  if (periodoElegido) consulta = consulta.eq("periodo_inicio", periodoElegido);
+  if (sedeElegida) consulta = consulta.eq("sede_clave", sedeElegida);
+  if (soloConVentas) consulta = consulta.gt("total_ventas", 0);
+
+  const { data } = await consulta;
   const lista = (data ?? []) as FilaReporte[];
 
   // Un enlace firmado por PDF, generado en una sola petición al bucket privado.
@@ -51,6 +81,10 @@ export default async function Reportes() {
     }
   }
 
+  const totalVentas = lista.reduce((suma, f) => suma + Number(f.total_ventas), 0);
+  const totalMensajes = lista.reduce((suma, f) => suma + Number(f.total_mensajes), 0);
+  const hayFiltros = Boolean(periodoElegido || sedeElegida || soloConVentas);
+
   return (
     <ShellApp>
       <main className="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-8">
@@ -63,6 +97,35 @@ export default async function Reportes() {
         <p className="text-sm text-ink-muted">
           Periodos del 29 al 28 de cada mes. Los reportes se generan automáticamente el día 28 a las 11:59 p. m.
         </p>
+
+        <form method="get" className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1 text-sm font-medium text-ink">
+            Periodo
+            <select name="periodo" defaultValue={periodoElegido ?? ""} className={claseCampo}>
+              <option value="">Todos</option>
+              {periodos.map(([inicio, fin]) => (
+                <option key={inicio} value={inicio}>{inicio} a {fin}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-ink">
+            Sede
+            <select name="sede" defaultValue={sedeElegida ?? ""} className={claseCampo}>
+              <option value="">Todas</option>
+              {sedes.map(([clave, nombre]) => (
+                <option key={clave} value={clave}>{nombre}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 pb-2 text-sm text-ink">
+            <input type="checkbox" name="ventas" value="1" defaultChecked={soloConVentas} className="size-4" />
+            Solo con ventas
+          </label>
+          <button type="submit" className={botonPrimario}>Filtrar</button>
+          {hayFiltros && (
+            <Link href="/reportes" className={botonSecundario}>Limpiar</Link>
+          )}
+        </form>
 
         <div className={tablaWrap}>
           <table className={tabla}>
@@ -80,8 +143,8 @@ export default async function Reportes() {
                 <tr>
                   <td colSpan={5}>
                     <EstadoVacio
-                      titulo="Aún no hay reportes."
-                      texto="Aparecerán aquí cuando el proceso mensual termine."
+                      titulo={hayFiltros ? "Ningún reporte con esos filtros." : "Aún no hay reportes."}
+                      texto={hayFiltros ? "Prueba con otro periodo o quita un filtro." : "Aparecerán aquí cuando el proceso mensual termine."}
                     />
                   </td>
                 </tr>
@@ -109,6 +172,18 @@ export default async function Reportes() {
                 );
               })}
             </tbody>
+            {lista.length > 0 && (
+              <tfoot>
+                <tr className="font-semibold">
+                  <td className="p-3" colSpan={2}>
+                    Total de {lista.length} {lista.length === 1 ? "reporte" : "reportes"}
+                  </td>
+                  <td className="p-3 text-right tabular-nums">{totalMensajes}</td>
+                  <td className="p-3 text-right tabular-nums">{formatoCOP(totalVentas)}</td>
+                  <td className="p-3" />
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </main>
