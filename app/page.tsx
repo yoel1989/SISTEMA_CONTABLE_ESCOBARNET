@@ -47,6 +47,13 @@ const ACCESOS: { href: string; titulo: string; descripcion: string; icono: Nombr
     descripcion: "Crea y descarga cotizaciones en PDF, Excel o Word.",
     icono: "cotizaciones",
   },
+  {
+    href: "/reportes",
+    modulo: "reportes",
+    titulo: "Reportes de sedes",
+    descripcion: "Reportes mensuales de ventas por sede, generados desde Telegram.",
+    icono: "calendario",
+  },
 ];
 
 // Tamaño de página al leer movimientos (PostgREST devuelve como máximo 1000 filas por petición).

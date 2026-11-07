@@ -48,6 +48,8 @@
   --modulo-dashboard-fondo: #ecfeff;
   --modulo-cotizaciones: #6d28d9;        /* violeta sobrio, ~6.9:1 */
   --modulo-cotizaciones-fondo: #f5f3ff;
+  --modulo-reportes: #1d4ed8;            /* azul intenso, ~6.7:1 */
+  --modulo-reportes-fondo: #eff6ff;
 }
 
 /* Modo oscuro: opt-in explícito con data-theme="dark". No se aplica por defecto. */
@@ -107,6 +109,8 @@
   --color-modulo-dashboard-fondo: var(--modulo-dashboard-fondo);
   --color-modulo-cotizaciones: var(--modulo-cotizaciones);
   --color-modulo-cotizaciones-fondo: var(--modulo-cotizaciones-fondo);
+  --color-modulo-reportes: var(--modulo-reportes);
+  --color-modulo-reportes-fondo: var(--modulo-reportes-fondo);
   --color-warning-line: var(--warning-line);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
