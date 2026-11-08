@@ -89,7 +89,10 @@ export default async function Catalogos() {
                   </td>
                   <td className="p-3 tabular-nums">{f.dia_cobro}</td>
                   <td className="p-3">
-                    <Insignia tono={f.activa ? "exito" : "neutro"}>{f.activa ? "Activa" : "Inactiva"}</Insignia>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Insignia tono={f.activa ? "exito" : "neutro"}>{f.activa ? "Activa" : "Inactiva"}</Insignia>
+                      {esAdmin && <Alternar tabla="fuentes_ingreso" id={f.id} activa={f.activa} />}
+                    </div>
                   </td>
                 </tr>
               ))}
