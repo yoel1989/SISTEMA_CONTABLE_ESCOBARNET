@@ -50,6 +50,8 @@
   --modulo-cotizaciones-fondo: #f5f3ff;
   --modulo-reportes: #1d4ed8;            /* azul intenso, ~6.7:1 */
   --modulo-reportes-fondo: #eff6ff;
+  --modulo-recibos: #be185d;             /* magenta sobrio, ~6.4:1 */
+  --modulo-recibos-fondo: #fdf2f8;
 }
 
 /* Modo oscuro: opt-in explícito con data-theme="dark". No se aplica por defecto. */
@@ -111,6 +113,8 @@
   --color-modulo-cotizaciones-fondo: var(--modulo-cotizaciones-fondo);
   --color-modulo-reportes: var(--modulo-reportes);
   --color-modulo-reportes-fondo: var(--modulo-reportes-fondo);
+  --color-modulo-recibos: var(--modulo-recibos);
+  --color-modulo-recibos-fondo: var(--modulo-recibos-fondo);
   --color-warning-line: var(--warning-line);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);

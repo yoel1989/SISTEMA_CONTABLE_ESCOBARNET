@@ -1,6 +1,6 @@
 // Acento por módulo. Los colores están en app/globals.css (--modulo-*). Aquí solo van
 // las clases, escritas completas para que Tailwind las detecte.
-export type ModuloId = "movimientos" | "tesoreria" | "dashboard" | "cotizaciones" | "reportes";
+export type ModuloId = "movimientos" | "tesoreria" | "dashboard" | "cotizaciones" | "reportes" | "recibos";
 
 export const CLASES_MODULO: Record<
   ModuloId,
@@ -35,5 +35,11 @@ export const CLASES_MODULO: Record<
     fondo: "bg-modulo-reportes-fondo",
     hoverBorde: "hover:border-modulo-reportes/50",
     activo: "bg-modulo-reportes-fondo text-modulo-reportes",
+  },
+  recibos: {
+    texto: "text-modulo-recibos",
+    fondo: "bg-modulo-recibos-fondo",
+    hoverBorde: "hover:border-modulo-recibos/50",
+    activo: "bg-modulo-recibos-fondo text-modulo-recibos",
   },
 };

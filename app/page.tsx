@@ -54,6 +54,13 @@ const ACCESOS: { href: string; titulo: string; descripcion: string; icono: Nombr
     descripcion: "Reportes mensuales de ventas por sede, generados desde Telegram.",
     icono: "calendario",
   },
+  {
+    href: "/recibos",
+    modulo: "recibos",
+    titulo: "Recibos de televisión",
+    descripcion: "Crea y consulta los recibos de pago del servicio de televisión.",
+    icono: "cotizaciones",
+  },
 ];
 
 // Tamaño de página al leer movimientos (PostgREST devuelve como máximo 1000 filas por petición).
