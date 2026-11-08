@@ -10,7 +10,7 @@ Código: `erp\` (Next.js 16 + TypeScript + Tailwind + Supabase). Idioma de la in
   - "Crear Recibos Televisión" (`recibos-app`, PWA estática) sigue pendiente de integrarse.
 
 ## Migraciones de Supabase (ejecutar en orden, cada una una sola vez)
-0001 perfiles y roles · 0002 modelo contable · 0003 auditoría · 0004 sedes · 0005 día de cobro y clientes · 0006 categorías de gasto reales · 0007 borrar genéricas · 0008 borrar "Gastos de sedes" · 0009 saldos manuales (sin cuenta en movimientos, sin transferencias) · 0010 vistas del dashboard · 0011 cotizaciones · 0012 descripción y observaciones · 0013 quitar archivo de referencia · 0014 logo legible sin sesión · 0015 bucket público `marca` para el logo · 0016 tabla `reportes_sedes` y bucket privado `reportes-sedes` · 0017 columna `total_a_enviar` y borrado solo para administradores.
+0001 perfiles y roles · 0002 modelo contable · 0003 auditoría · 0004 sedes · 0005 día de cobro y clientes · 0006 categorías de gasto reales · 0007 borrar genéricas · 0008 borrar "Gastos de sedes" · 0009 saldos manuales (sin cuenta en movimientos, sin transferencias) · 0010 vistas del dashboard · 0011 cotizaciones · 0012 descripción y observaciones · 0013 quitar archivo de referencia · 0014 logo legible sin sesión · 0015 bucket público `marca` para el logo · 0016 tabla `reportes_sedes` y bucket privado `reportes-sedes` · 0017 columna `total_a_enviar` y borrado solo para administradores. · 0018 renombra la sede TERMALES a MIRAVALLE.
 
 Después de la 0015 hay que volver a subir el logo en /cotizaciones.
 
