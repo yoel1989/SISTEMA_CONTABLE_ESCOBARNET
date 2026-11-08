@@ -16,7 +16,7 @@ Después de la 0015 hay que volver a subir el logo en /cotizaciones.
 
 ## Reportes de sedes (Fase 7)
 - Flujo: el workflow `reportes-mensuales.yml` (repo `extraer-datos-sedes-`) corre el día 28 a las 23:59 (hora Colombia) y sube un PDF por sede al bucket `reportes-sedes`, registrando la fila en `reportes_sedes`.
-- Generación manual desde `/reportes` (solo admin): usa la variable `GITHUB_DISPATCH_TOKEN` (en `.env.local` y en Vercel). Es un token de GitHub de tipo fine-grained, limitado a ese repo, con permiso Actions: Read and write. **Vence a 1 año**: anotar la fecha y renovarlo antes.
+- Generación manual desde `/reportes` (solo admin): usa la variable `GITHUB_DISPATCH_TOKEN` (en `.env.local` y en Vercel, probado en producción). Es un token de GitHub de tipo fine-grained, limitado a ese repo, con permiso Actions: Read and write. **Vence a 1 año**: anotar la fecha y renovarlo antes.
 - Reglas de negocio aplicadas en los scripts:
   - Brisas: si hay 2 o más pines de mes en el periodo, 2 pasan a "PROFE" a $30.000; el resto sigue a $45.000. Brisas conserva el cargo fijo de TV.
   - La Tortuga: se quitó el cargo fijo de TV.
@@ -49,7 +49,6 @@ Después de la 0015 hay que volver a subir el logo en /cotizaciones.
 
 ## Pendientes
 - Regenerar los reportes de sedes afectados (ver sección de reportes).
-- Agregar `GITHUB_DISPATCH_TOKEN` en Vercel (Production) si aún no se hizo.
 - Decidir el plan de Vercel (Pro o cambiar de hosting) antes de usarlo en el negocio.
 - Si el login usa enlaces de correo: agregar `https://sistema-contable-escobarnet-vbgq.vercel.app` en Supabase, en Authentication > URL Configuration.
 - Próxima sesión: decidir si la gráfica de Inicio muestra todo el historial o solo los últimos 12 o 24 meses.
