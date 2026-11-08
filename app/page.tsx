@@ -18,7 +18,7 @@ export const instant = false;
 
 type ClienteSupabase = Awaited<ReturnType<typeof createClient>>;
 
-const ACCESOS: { href: string; titulo: string; descripcion: string; icono: NombreIcono; modulo: ModuloId }[] = [
+const ACCESOS: { href: string; titulo: string; descripcion: string; icono: NombreIcono; modulo: ModuloId; nuevaPestana?: boolean }[] = [
   {
     href: "/movimientos",
     modulo: "movimientos",
@@ -60,6 +60,7 @@ const ACCESOS: { href: string; titulo: string; descripcion: string; icono: Nombr
     titulo: "Recibos de televisión",
     descripcion: "Crea y consulta los recibos de pago del servicio de televisión.",
     icono: "cotizaciones",
+    nuevaPestana: true,
   },
 ];
 
@@ -377,6 +378,7 @@ export default async function Home() {
                 <Link
                   key={a.href}
                   href={a.href}
+                  {...(a.nuevaPestana ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className={`group flex items-start gap-4 rounded-2xl border border-line bg-canvas p-5 shadow-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-elevado ${CLASES_MODULO[a.modulo].hoverBorde}`}
                 >
                   <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${CLASES_MODULO[a.modulo].fondo} ${CLASES_MODULO[a.modulo].texto}`}>

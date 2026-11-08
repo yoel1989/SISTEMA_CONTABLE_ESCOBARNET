@@ -5,7 +5,11 @@ import { usePathname } from "next/navigation";
 import { useId, useState, type ReactNode } from "react";
 import { CLASES_MODULO, type ModuloId } from "./modulos";
 
-export type Enlace = { href: string; titulo: string; modulo: ModuloId };
+// nuevaPestana: abre el destino en otra pestaña del navegador (para apps externas).
+export type Enlace = { href: string; titulo: string; modulo: ModuloId; nuevaPestana?: boolean };
+
+const atributosPestana = (e: Enlace) =>
+  e.nuevaPestana ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
 // Barra superior del sitio. En escritorio muestra los enlaces en línea; en teléfono,
 // un botón plegable (aria-expanded + aria-controls) despliega el mismo menú.
@@ -53,7 +57,7 @@ export function NavegacionPrincipal({
 
         <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
           {enlaces.map((e) => (
-            <Link key={e.href} href={e.href} className={claseEnlace(e)} aria-current={ruta === e.href ? "page" : undefined}>
+            <Link key={e.href} href={e.href} {...atributosPestana(e)} className={claseEnlace(e)} aria-current={ruta === e.href ? "page" : undefined}>
               {e.titulo}
             </Link>
           ))}
@@ -90,7 +94,7 @@ export function NavegacionPrincipal({
       <div id={idMenu} hidden={!abierto} className="border-t border-white/20 bg-brand px-4 py-4 md:hidden">
         <nav aria-label="Principal móvil" className="grid gap-1" onClick={() => setAbierto(false)}>
           {enlaces.map((e) => (
-            <Link key={e.href} href={e.href} className={`${claseEnlace(e)} block py-3`} aria-current={ruta === e.href ? "page" : undefined}>
+            <Link key={e.href} href={e.href} {...atributosPestana(e)} className={`${claseEnlace(e)} block py-3`} aria-current={ruta === e.href ? "page" : undefined}>
               {e.titulo}
             </Link>
           ))}
