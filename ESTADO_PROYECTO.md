@@ -23,7 +23,7 @@ Después de la 0015 hay que volver a subir el logo en /cotizaciones.
   - Miravalle usa el grupo "Notificaciones Miravalle" (ID -5249269437).
   - Cerritos y San Miguel se quitaron (sus grupos ya no existen).
   - Las fechas de los mensajes se convierten a hora de Colombia (antes dependían de la zona de la máquina y se perdían pines después de las 7 p. m.).
-- Reportes generados antes del cambio de zona horaria o de la regla PROFE pueden estar incompletos o con el cálculo viejo: regenerarlos desde `/reportes`.
+- Los extractos comienzan a generarse automáticamente desde el próximo mes (periodo del 29 al 28).
 
 ## Mikrotik (no tocar por ahora)
 - El router de La Tortuga está en producción. Cada PIN se registra al primer uso; el mensaje a Telegram sale desde los scripts `Telegram` y `Finalizartarea`.
@@ -48,7 +48,6 @@ Después de la 0015 hay que volver a subir el logo en /cotizaciones.
 - La CLI de Vercel no tiene sesión en la consola de Claude Code. Para desplegar por CLI hay que usar `VERCEL_TOKEN` o hacerlo desde la web.
 
 ## Pendientes
-- Regenerar los reportes de sedes afectados (ver sección de reportes).
 - Decidir el plan de Vercel (Pro o cambiar de hosting) antes de usarlo en el negocio.
 - Si el login usa enlaces de correo: agregar `https://sistema-contable-escobarnet-vbgq.vercel.app` en Supabase, en Authentication > URL Configuration.
 - Próxima sesión: decidir si la gráfica de Inicio muestra todo el historial o solo los últimos 12 o 24 meses.
