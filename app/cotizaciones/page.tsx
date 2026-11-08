@@ -3,7 +3,7 @@ import { ShellApp } from "@/components/ui/shell-app";
 import { TituloModulo } from "@/components/ui/titulo-modulo";
 import { sesionActual } from "@/lib/auth";
 import { formatoCOP } from "@/lib/formato";
-import { subirLogo } from "./actions";
+import { subirLogo, subirLogoCotizacion } from "./actions";
 import { tonoDeEstado } from "./tono-estado";
 import { Alerta } from "@/components/ui/alerta";
 import { Insignia } from "@/components/ui/insignia";
@@ -30,16 +30,18 @@ export default async function Cotizaciones({ searchParams }: Props) {
   const params = await searchParams;
   const { supabase, esAdmin } = await sesionActual();
 
-  const [{ data }, { data: conf }] = await Promise.all([
+  const [{ data }, { data: conf }, { data: confCot }] = await Promise.all([
     supabase
       .from("cotizaciones")
       .select("id, numero, cliente, fecha, estado, total")
       .order("fecha", { ascending: false })
       .order("numero", { ascending: false }),
     supabase.from("configuracion").select("valor").eq("clave", "logo_path").maybeSingle(),
+    supabase.from("configuracion").select("valor").eq("clave", "logo_cotizacion_path").maybeSingle(),
   ]);
   const lista = data ?? [];
   const tieneLogo = typeof conf?.valor === "string";
+  const tieneLogoCotizacion = typeof confCot?.valor === "string";
 
   return (
     <ShellApp>
@@ -57,13 +59,14 @@ export default async function Cotizaciones({ searchParams }: Props) {
       </header>
 
       {params.error && <Alerta tipo="error">{params.error}</Alerta>}
-      {params.guardado === "logo" && <Alerta tipo="exito">Logo guardado. Aparecerá en las próximas descargas.</Alerta>}
+      {params.guardado === "logo" && <Alerta tipo="exito">Logo de la empresa guardado.</Alerta>}
+      {params.guardado === "logo-cotizacion" && <Alerta tipo="exito">Logo de cotizaciones guardado. Aparecerá en las próximas descargas.</Alerta>}
 
       <section className={`${tarjeta} flex flex-wrap items-center justify-between gap-4`}>
         <div className="space-y-1">
           <h2 className={subtitulo}>Logo de la empresa</h2>
           <p className="text-sm text-ink-muted">
-            {tieneLogo ? "Logo cargado: se incluye en los PDF, Excel y Word." : "Sin logo: los documentos muestran el nombre ESCOBAR.NET."}
+            {tieneLogo ? "Logo cargado: se muestra en la barra superior y en el login." : "Sin logo: se muestra el nombre ESCOBAR.NET."}
           </p>
         </div>
         {esAdmin && (
@@ -77,6 +80,31 @@ export default async function Cotizaciones({ searchParams }: Props) {
             />
             <button type="submit" className={botonSecundario}>
               {tieneLogo ? "Reemplazar logo" : "Subir logo"}
+            </button>
+          </form>
+        )}
+      </section>
+
+      <section className={`${tarjeta} flex flex-wrap items-center justify-between gap-4`}>
+        <div className="space-y-1">
+          <h2 className={subtitulo}>Logo para cotizaciones</h2>
+          <p className="text-sm text-ink-muted">
+            {tieneLogoCotizacion
+              ? "Logo cargado: se incluye en los PDF, Excel y Word de las cotizaciones."
+              : "Sin logo propio: las cotizaciones usan el logo de la empresa."}
+          </p>
+        </div>
+        {esAdmin && (
+          <form action={subirLogoCotizacion} encType="multipart/form-data" className="flex flex-wrap items-center gap-3">
+            <input
+              name="logo"
+              type="file"
+              accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+              required
+              className="block max-w-xs cursor-pointer text-sm text-ink-muted file:mr-4 file:cursor-pointer file:rounded-lg file:border file:border-line-strong file:bg-surface-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-ink hover:file:bg-surface"
+            />
+            <button type="submit" className={botonSecundario}>
+              {tieneLogoCotizacion ? "Reemplazar logo" : "Subir logo"}
             </button>
           </form>
         )}

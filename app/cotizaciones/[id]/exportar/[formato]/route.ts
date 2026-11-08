@@ -85,12 +85,14 @@ export async function GET(
 }
 
 async function cargarLogo(supabase: Awaited<ReturnType<typeof createClient>>): Promise<Logo | undefined> {
-  const { data: conf } = await supabase
+  // Primero el logo propio de cotizaciones; si no hay, el logo general de la empresa.
+  const { data: confs } = await supabase
     .from("configuracion")
-    .select("valor")
-    .eq("clave", "logo_path")
-    .maybeSingle();
-  const ruta = typeof conf?.valor === "string" ? conf.valor : null;
+    .select("clave, valor")
+    .in("clave", ["logo_cotizacion_path", "logo_path"]);
+  const valorDe = (clave: string) => confs?.find((c) => c.clave === clave)?.valor;
+  const candidata = valorDe("logo_cotizacion_path") ?? valorDe("logo_path");
+  const ruta = typeof candidata === "string" ? candidata : null;
   if (!ruta) return undefined;
 
   const minuscula = ruta.toLowerCase();

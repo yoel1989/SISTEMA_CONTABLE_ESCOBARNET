@@ -183,6 +183,49 @@ export async function subirLogo(formData: FormData) {
   redirect("/cotizaciones?guardado=logo");
 }
 
+// Logo solo para los documentos de cotizaciones (PDF, Excel, Word).
+// Usa su propia clave de configuración, así la barra superior y el login no cambian.
+export async function subirLogoCotizacion(formData: FormData) {
+  const { supabase, esAdmin } = await sesionActual();
+  if (!esAdmin) throw new Error("Solo un administrador puede cambiar el logo.");
+
+  const archivo = formData.get("logo");
+  if (!(archivo instanceof File) || archivo.size === 0) {
+    redirect(`/cotizaciones?error=${encodeURIComponent("Selecciona una imagen para cotizaciones.")}`);
+  }
+  const nombre = archivo.name.toLowerCase();
+  if (!(nombre.endsWith(".png") || nombre.endsWith(".jpg") || nombre.endsWith(".jpeg"))) {
+    redirect(`/cotizaciones?error=${encodeURIComponent("El logo debe ser PNG o JPG.")}`);
+  }
+  if (archivo.size > TAMANO_MAX_LOGO) {
+    redirect(`/cotizaciones?error=${encodeURIComponent("El logo supera 2 MB.")}`);
+  }
+
+  const { data: previo } = await supabase
+    .from("configuracion")
+    .select("valor")
+    .eq("clave", "logo_cotizacion_path")
+    .maybeSingle();
+  if (typeof previo?.valor === "string") {
+    await supabase.storage.from(BUCKET_MARCA).remove([previo.valor]);
+  }
+
+  const ruta = `logo-cotizacion/${Date.now()}-${nombre.replace(/[^\w.\-]+/g, "_")}`;
+  const { error: errSubida } = await supabase.storage.from(BUCKET_MARCA).upload(ruta, archivo, {
+    contentType: archivo.type || "image/png",
+    upsert: false,
+  });
+  if (errSubida) redirect(`/cotizaciones?error=${encodeURIComponent(`No se pudo subir: ${errSubida.message}`)}`);
+
+  const { error } = await supabase
+    .from("configuracion")
+    .upsert({ clave: "logo_cotizacion_path", valor: ruta }, { onConflict: "clave" });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/cotizaciones");
+  redirect("/cotizaciones?guardado=logo-cotizacion");
+}
+
 export async function eliminarCotizacion(formData: FormData) {
   const { supabase, esAdmin } = await sesionActual();
   if (!esAdmin) throw new Error("Solo un administrador puede eliminar cotizaciones.");
